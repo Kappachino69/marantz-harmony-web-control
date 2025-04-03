@@ -8,6 +8,7 @@ import { ZonesSection } from '@/components/sections/ZonesSection';
 import { SoundModesSection } from '@/components/sections/SoundModesSection';
 import { SettingsSection } from '@/components/sections/SettingsSection';
 import { AboutSection } from '@/components/sections/AboutSection';
+import { ReceiverProvider } from '@/contexts/ReceiverContext';
 
 const Index = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -37,24 +38,26 @@ const Index = () => {
 
   return (
     <ThemeProvider>
-      <div className="min-h-screen flex flex-col">
-        <Header toggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
-        
-        <div className="flex-1 flex">
-          <Sidebar 
-            isOpen={sidebarOpen}
-            onClose={() => setSidebarOpen(false)}
-            activeSection={activeSection}
-            setActiveSection={setActiveSection}
-          />
+      <ReceiverProvider>
+        <div className="min-h-screen flex flex-col">
+          <Header toggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
           
-          <main className="flex-1 p-4 md:p-8 overflow-y-auto">
-            <div className="max-w-6xl mx-auto">
-              {renderActiveSection()}
-            </div>
-          </main>
+          <div className="flex-1 flex">
+            <Sidebar 
+              isOpen={sidebarOpen}
+              onClose={() => setSidebarOpen(false)}
+              activeSection={activeSection}
+              setActiveSection={setActiveSection}
+            />
+            
+            <main className="flex-1 p-4 md:p-8 overflow-y-auto">
+              <div className="max-w-6xl mx-auto">
+                {renderActiveSection()}
+              </div>
+            </main>
+          </div>
         </div>
-      </div>
+      </ReceiverProvider>
     </ThemeProvider>
   );
 };

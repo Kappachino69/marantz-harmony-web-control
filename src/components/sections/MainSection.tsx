@@ -4,6 +4,7 @@ import { VolumeControl } from '../VolumeControl';
 import { SourceSelector } from '../SourceSelector';
 import { PowerControl } from '../PowerControl';
 import { SoundModeSelector } from '../SoundModeSelector';
+import { ConnectionForm } from '../ConnectionForm';
 import { cn } from '@/lib/utils';
 
 interface MainSectionProps {
@@ -35,6 +36,11 @@ export const MainSection: React.FC<MainSectionProps> = ({ className }) => {
   
   return (
     <div className={cn("space-y-8", className)}>
+      <div className="bg-white dark:bg-marantz-dark rounded-xl shadow-md p-6 mb-8">
+        <h3 className="text-lg font-semibold mb-4">Receiver Connection</h3>
+        <ConnectionForm />
+      </div>
+      
       <div className="text-center mb-8">
         <h2 className="text-2xl font-display font-semibold mb-2">Main Zone</h2>
         {isOn && !isMuted && <SoundWaveAnimation />}

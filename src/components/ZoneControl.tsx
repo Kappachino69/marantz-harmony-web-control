@@ -4,6 +4,7 @@ import { VolumeControl } from './VolumeControl';
 import { SourceSelector } from './SourceSelector';
 import { PowerControl } from './PowerControl';
 import { cn } from '@/lib/utils';
+import { useReceiver } from '@/contexts/ReceiverContext';
 
 interface ZoneControlProps {
   zoneName: string;
@@ -14,6 +15,7 @@ export const ZoneControl: React.FC<ZoneControlProps> = ({
   zoneName,
   className
 }) => {
+  const { isConnected } = useReceiver();
   const [isOn, setIsOn] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [volume, setVolume] = useState(30);
@@ -39,6 +41,7 @@ export const ZoneControl: React.FC<ZoneControlProps> = ({
     <div className={cn(
       "zone-card",
       isOn ? "opacity-100" : "opacity-80",
+      !isConnected && "opacity-50",
       className
     )}>
       <div className="flex justify-between items-center mb-6">

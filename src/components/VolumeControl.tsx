@@ -2,6 +2,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Volume, Volume1, Volume2, VolumeX } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useReceiver } from '@/contexts/ReceiverContext';
+import { setVolume, setMute } from '@/utils/marantzApi';
+import { useToast } from '@/hooks/use-toast';
 
 interface VolumeControlProps {
   initialVolume?: number;
@@ -18,25 +21,80 @@ export const VolumeControl: React.FC<VolumeControlProps> = ({
   onMuteToggle,
   className
 }) => {
-  const [volume, setVolume] = useState(initialVolume);
+  const { ipAddress, isConnected } = useReceiver();
+  const { toast } = useToast();
+  const [volume, setVolumeState] = useState(initialVolume);
+  const [isProcessing, setIsProcessing] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const knobRef = useRef<HTMLDivElement>(null);
   
   useEffect(() => {
-    setVolume(initialVolume);
+    setVolumeState(initialVolume);
   }, [initialVolume]);
 
-  const handleVolumeChange = (newVolume: number) => {
-    const clampedVolume = Math.max(0, Math.min(100, newVolume));
-    setVolume(clampedVolume);
-    onVolumeChange?.(clampedVolume);
+  const handleVolumeChange = async (newVolume: number) => {
+    const clampedVolume = Math.max(0, Math.min(98, newVolume));
+    setVolumeState(clampedVolume);
+    
+    if (onVolumeChange) {
+      onVolumeChange(clampedVolume);
+    }
+    
+    if (!isConnected || !ipAddress) {
+      return;
+    }
+    
+    try {
+      await setVolume(ipAddress, clampedVolume);
+    } catch (error) {
+      toast({
+        title: "Volume Control Error",
+        description: "Failed to set volume on receiver",
+        variant: "destructive"
+      });
+    }
+  };
+  
+  const handleMuteToggle = async () => {
+    if (!isConnected || !ipAddress) {
+      toast({
+        title: "Not Connected",
+        description: "Please connect to your receiver first",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    setIsProcessing(true);
+    
+    try {
+      const success = await setMute(ipAddress, !isMuted);
+      
+      if (success && onMuteToggle) {
+        onMuteToggle();
+      } else if (!success) {
+        toast({
+          title: "Command Failed",
+          description: "Could not change mute state",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Command Error",
+        description: "An error occurred while sending the command",
+        variant: "destructive"
+      });
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   const getVolumeIcon = () => {
-    if (isMuted || volume === 0) return <VolumeX className="text-gray-500" />;
-    if (volume < 30) return <Volume />;
-    if (volume < 70) return <Volume1 />;
-    return <Volume2 />;
+    if (isMuted || volume === 0) return <VolumeX className={isProcessing ? "animate-pulse text-gray-500" : "text-gray-500"} />;
+    if (volume < 30) return <Volume className={isProcessing ? "animate-pulse" : ""} />;
+    if (volume < 70) return <Volume1 className={isProcessing ? "animate-pulse" : ""} />;
+    return <Volume2 className={isProcessing ? "animate-pulse" : ""} />;
   };
 
   // Handle knob rotation effect
@@ -56,8 +114,8 @@ export const VolumeControl: React.FC<VolumeControlProps> = ({
     // Convert to degrees and normalize to 0-360
     const angleDeg = (angleRad * 180 / Math.PI + 90) % 360;
     
-    // Map angle to volume (0-100)
-    const newVolume = Math.round((angleDeg / 360) * 100);
+    // Map angle to volume (0-98 for Marantz)
+    const newVolume = Math.round((angleDeg / 360) * 98);
     handleVolumeChange(newVolume);
   };
 
@@ -65,13 +123,16 @@ export const VolumeControl: React.FC<VolumeControlProps> = ({
     <div className={cn("flex flex-col items-center", className)}>
       <div 
         ref={knobRef}
-        className="control-knob mb-4"
-        onClick={handleKnobInteraction}
+        className={cn(
+          "control-knob mb-4",
+          !isConnected && "opacity-70 cursor-not-allowed"
+        )}
+        onClick={isConnected ? handleKnobInteraction : undefined}
         style={{ transform: isMuted ? 'scale(0.95)' : 'scale(1)' }}
       >
         <div 
           className="control-knob-inner"
-          style={{ transform: `rotate(${(volume / 100) * 270}deg)` }}
+          style={{ transform: `rotate(${(volume / 98) * 270}deg)` }}
         />
         <div className="absolute inset-0 flex items-center justify-center">
           <span className={cn(
@@ -85,8 +146,12 @@ export const VolumeControl: React.FC<VolumeControlProps> = ({
       
       <div className="w-full max-w-xs flex items-center gap-3">
         <button
-          onClick={onMuteToggle}
-          className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors"
+          onClick={handleMuteToggle}
+          disabled={isProcessing || !isConnected}
+          className={cn(
+            "p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors",
+            (!isConnected || isProcessing) && "opacity-50 cursor-not-allowed"
+          )}
         >
           {getVolumeIcon()}
         </button>
@@ -94,10 +159,14 @@ export const VolumeControl: React.FC<VolumeControlProps> = ({
         <input
           type="range"
           min="0"
-          max="100"
+          max="98"
           value={volume}
           onChange={(e) => handleVolumeChange(parseInt(e.target.value))}
-          className="flex-1"
+          disabled={!isConnected}
+          className={cn(
+            "flex-1",
+            !isConnected && "opacity-70 cursor-not-allowed"
+          )}
         />
       </div>
     </div>
