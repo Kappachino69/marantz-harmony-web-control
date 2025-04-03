@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Switch } from '@/components/ui/switch';
 import { Slider } from '@/components/ui/slider';
@@ -135,7 +134,7 @@ export const SettingsSection: React.FC<SettingsSectionProps> = ({ className }) =
   );
 };
 
-function getSettingDescription(setting: keyof typeof SettingsSection.prototype.type.settings): string {
+function getSettingDescription(setting: string): string {
   const descriptions: Record<string, string> = {
     autoStandby: "Automatically turn off after period of inactivity",
     ecoMode: "Reduce power consumption when in use",

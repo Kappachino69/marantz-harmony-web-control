@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Tv, Radio, Disc, Music, MonitorPlay, Game, Laptop, Mic } from 'lucide-react';
+import { Tv, Radio, Disc, Music, MonitorPlay, Gamepad2, Laptop, Mic } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface SourceOption {
@@ -19,7 +19,7 @@ const sources: SourceOption[] = [
   { id: 'tv', label: 'TV', icon: <Tv size={20} /> },
   { id: 'cd', label: 'CD', icon: <Disc size={20} /> },
   { id: 'bluray', label: 'Blu-ray', icon: <MonitorPlay size={20} /> },
-  { id: 'game', label: 'Game', icon: <Game size={20} /> },
+  { id: 'game', label: 'Game', icon: <Gamepad2 size={20} /> },
   { id: 'media', label: 'Media Player', icon: <Music size={20} /> },
   { id: 'pc', label: 'PC', icon: <Laptop size={20} /> },
   { id: 'tuner', label: 'Tuner', icon: <Radio size={20} /> },
